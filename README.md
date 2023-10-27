@@ -5,7 +5,7 @@
 This is an example project trying to implement C++ like **heap allocated strings**
 and **non owning string refereces(string views)** in C.
 
-### Features:
+### Features
 - Heap allocated strings:  
 This allows resizing of the strings to assign bigger strings if needed.
 
@@ -32,7 +32,7 @@ to save heap allocation calls as string views are stored in stack memory. Check 
 [repo](https://github.com/ritchielrez/c-string-test) to learn more about how you may use 
 this feature.
 
-### How to use this library:
+### How to use this library
 
 Just copy and past the file `rit_str.h` in your project. Then add these lines to your
 source files: 
@@ -43,7 +43,7 @@ source files:
 
 This library also required [this]() single header only library to be included in your project.
 
-### Known issues  
+### Known issues
 ##### Not everything is yet implemented, such as:
 - string copy, like `strcopy`
 - probably a better way to convert a `rit_str` to `rit_str_view`
