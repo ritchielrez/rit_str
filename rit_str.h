@@ -1,5 +1,5 @@
-#ifndef C_STRING_TEST_INCLUDED
-#define C_STRING_TEST_INCLUDED
+#ifndef RIT_STR_INCLUDED
+#define RIT_STR_INCLUDED
 
 #include <stddef.h>
 #include <stdio.h>
@@ -84,7 +84,7 @@ rit_str *rit_str_view_concat(Arena *t_arena,
                              rit_str_view const *t_rit_str_view_1,
                              rit_str_view const *t_rit_str_view_2);
 
-#ifdef C_STRING_TEST_IMPLEMENTATION
+#ifdef RIT_STR_IMPLEMENTATION
 
 #include <string.h>
 
@@ -183,5 +183,5 @@ void rit_str_view_print(rit_str_view const *t_rit_str_view) {
   }
 }
 
-#endif  // C_STRING_TEST_IMPLEMENTATION
-#endif  // C_STRING_TEST_INCLUDED
+#endif  // RIT_STR_IMPLEMENTATION
+#endif  // RIT_STR_INCLUDED
