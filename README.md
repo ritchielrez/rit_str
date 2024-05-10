@@ -39,8 +39,6 @@ source files:
 #include "rit_str.h"
 ```
 
-This library also required [this]() single header only library to be included in your project.
-
 ### Known issues
 ##### Not everything is yet implemented, such as:
 - string copy, like `strcopy`
