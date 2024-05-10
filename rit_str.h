@@ -55,7 +55,13 @@ struct rit_str_view {
 /// @param t_str The string to be allocated
 /// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_create(const char *t_str, rit_str_allocator *t_allocator);
+#define rit_str_create(t_str, t_allocator) \
+  rit_str_create_with_location(__FILE__, __LINE__, t_str, t_allocator)
+
+/// @internal
+rit_str *rit_str_create_with_location(const char *t_file, int t_line,
+                                      const char *t_str,
+                                      rit_str_allocator *t_allocator);
 
 /// @brief Allocate some space for a new string
 /// @param t_capacity The capacity of the rit_str
@@ -160,7 +166,9 @@ void rit_str_realloc(rit_str **t_rit_str, size_t t_capacity,
   }
 }
 
-rit_str *rit_str_create(const char *t_str, rit_str_allocator *t_allocator) {
+rit_str *rit_str_create_with_location(const char *t_file, int t_line,
+                                      const char *t_str,
+                                      rit_str_allocator *t_allocator) {
   size_t capacity = DEFAULT_STRING_CAP;
   size_t size = strlen(t_str);
   if (size >= capacity) {
