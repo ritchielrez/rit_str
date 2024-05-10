@@ -6,19 +6,39 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "arena_allocator.h"
+#define DEFAULT_STRING_CAP 16
 
-#define DEFAULT_STRING_SIZE 256
-
+typedef struct rit_str_allocator rit_str_allocator;
 typedef struct rit_str rit_str;
 typedef struct rit_str_view rit_str_view;
+
+/// @brief Custom allocator interface.
+/// Functions allocating memory takes a custom allocator based off this
+/// interface as a parameter.
+struct rit_str_allocator {
+  void *(*alloc)(void *, size_t);
+  void (*free)(void *, void *);
+  void *(*realloc)(void *, void *, size_t, size_t);
+  void *m_ctx;  // The arena, stack or etc where the memory would be allocated,
+                // NULL if none
+};
+
+// Disable warning C4200: nonstandard extension used: zero-sized array in
+// struct/union in MSVC
+#pragma warning(push)
+#pragma warning(disable : 4200)
 
 /// @brief A string structure holding a string and it's length
 struct rit_str {
   size_t m_size;
+  size_t m_capacity;
   char m_str[];
 };
+
+// Enable the warning again
+#pragma warning(pop)
 
 /// @brief A string view structure
 /// A string view is a non owning reference to a string.
@@ -32,30 +52,58 @@ struct rit_str_view {
 };
 
 /// @brief Allocates a new string
-/// @param t_arena The arena where the string will be allocated
 /// @param t_str The string to be allocated
+/// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_create(Arena *t_arena, const char *t_str);
+rit_str *rit_str_create(const char *t_str, rit_str_allocator *t_allocator);
 
-/// @brief Allocate some reserver space for a new string
-/// @param t_arena The arena where the string will be allocated
-/// @param t_size_in_bytes The amount of reserverd space in bytes
+/// @brief Allocate some space for a new string
+/// @param t_capacity The capacity of the rit_str
+/// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_reserve(Arena *t_arena, size_t t_size_in_bytes);
+rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator); 
+
+/// @brief Reallocate some space for an existing string
+/// @param t_rit_str Pointer to the rit_str
+/// @param t_capacity The new set capacity
+/// @param t_allocator Custom allocator for the function to use
+/// @return void
+void rit_str_realloc(rit_str **t_rit_str, size_t t_capacity,
+                      rit_str_allocator *t_allocator);
 
 /// @brief Copy a c string to rit_str
 /// @param t_rit_str
 /// @param t_str The c string
+/// @param t_allocator Custom allocator for the function to use
 /// @return void
-void rit_str_copy(rit_str *t_rit_str, const char *t_str);
+#define rit_str_set(t_rit_str, t_str, t_allocator)                 \
+  do {                                                             \
+    if (t_rit_str->m_capacity < strlen(t_str)) {                   \
+      rit_str_realloc(&t_rit_str, strlen(t_str) * 2, t_allocator); \
+      t_rit_str->m_size = strlen(t_str);                           \
+    }                                                              \
+    size_t i;                                                      \
+                                                                   \
+    for (i = 0; i < strlen(t_str); ++i) {                          \
+      t_rit_str->m_str[i] = t_str[i];                              \
+    }                                                              \
+    t_rit_str->m_str[i] = '\0';                                    \
+  } while (0)
 
 /// @brief Concatenate two strings
-/// @param t_arena The arena where the new string will be allocated
 /// @param t_rit_str_1
 /// @param t_rit_str_2
+/// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_concat(Arena *t_arena, rit_str const *t_rit_str_1,
-                        rit_str const *t_rit_str_2);
+rit_str *rit_str_concat(rit_str const *t_rit_str_1, rit_str const *t_rit_str_2,
+                        rit_str_allocator *t_allocator);
+
+/// @brief Free a rit_str
+/// @param t_rit_str
+/// @param t_allocator Custom allocator for the function to use
+inline void rit_str_free(rit_str *t_rit_str, rit_str_allocator *t_allocator) {
+  t_allocator->free(t_allocator->m_ctx, t_rit_str);
+}
 
 /// @brief Create a string view of a string or substring
 /// A string view is a non owning reference to a string.
@@ -69,72 +117,73 @@ rit_str *rit_str_concat(Arena *t_arena, rit_str const *t_rit_str_1,
 /// @param t_index Starting index of the string
 /// @param t_size Length of the string
 /// @return rit_str_view
-rit_str_view rit_str_view_create(char const *t_str, size_t t_index,
-                                 size_t t_size);
+#define rit_str_view_create(t_str, t_index, t_size) \
+  rit_str_view_create_with_location(__FILE__, __LINE__, t_str, t_index, t_size)
+
+/// @internal
+rit_str_view rit_str_view_create_with_location(const char *t_file, int t_line,
+                                               const char *t_str,
+                                               size_t t_index, size_t t_size);
 
 /// @brief Prints the string or substring that has been assigned to the string
 /// view
 /// @param t_rit_str_view The string view
 /// @return void
-void rit_str_view_print(rit_str_view const *t_rit_str_view);
+void rit_str_view_print(const rit_str_view *const t_rit_str_view) {
 
 /// @brief Concatenate two strings from two string views
-/// @param t_arena The arena where the string is going to be allocated
 /// @param t_rit_str_view_1
 /// @param t_rit_str_view_2
+/// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_view_concat(Arena *t_arena,
-                             rit_str_view const *t_rit_str_view_1,
-                             rit_str_view const *t_rit_str_view_2);
+rit_str *rit_str_view_concat(rit_str_view const *t_rit_str_view_1,
+                             rit_str_view const *t_rit_str_view_2,
+                             rit_str_allocator *t_allocator);
 
 #ifdef RIT_STR_IMPLEMENTATION
 
 #include <string.h>
 
-#define ARENA_ALLOCATOR_IMPLEMENTATION
-#include "arena_allocator.h"
+rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator) {
+  rit_str *result = (rit_str *)t_allocator->alloc(
+      t_allocator->m_ctx, sizeof(rit_str) + t_capacity + 1);
 
-rit_str *rit_str_reserve(Arena *t_arena, size_t t_size_in_bytes) {
-  rit_str *result =
-      (rit_str *)arena_alloc(t_arena, sizeof(rit_str) + t_size_in_bytes);
-  result->m_size = t_size_in_bytes - 1;
+  result->m_capacity = t_capacity;
   return result;
 }
 
-void rit_str_copy(rit_str *t_rit_str, const char *t_str) {
-  if (t_rit_str->m_size < strlen(t_str)) {
-    fprintf(stderr, "The provided string is too big to copy\n");
-    return;
+void rit_str_realloc(rit_str **t_rit_str, size_t t_capacity,
+                      rit_str_allocator *t_allocator) {
+  if (t_capacity > (*t_rit_str)->m_capacity) {
+    *t_rit_str = t_allocator->realloc(t_allocator->m_ctx, *t_rit_str,
+                                      (*t_rit_str)->m_capacity, t_capacity);
+    (*t_rit_str)->m_capacity = t_capacity;
   }
-  size_t i;
-
-  for (i = 0; i < strlen(t_str); ++i) {
-    t_rit_str->m_str[i] = t_str[i];
-  }
-  t_rit_str->m_str[i] = '\0';
 }
 
-rit_str *rit_str_create(Arena *t_arena, const char *t_str) {
-  size_t size = DEFAULT_STRING_SIZE;
-  if (strlen(t_str) + 1 > DEFAULT_STRING_SIZE) {
-    size = strlen(t_str) + 1;
+rit_str *rit_str_create(const char *t_str, rit_str_allocator *t_allocator) {
+  size_t capacity = DEFAULT_STRING_CAP;
+  size_t size = strlen(t_str);
+  if (size >= capacity) {
+    capacity = size * 2;
   }
 
-  rit_str *result = rit_str_reserve(t_arena, size);
-
-  rit_str_copy(result, t_str);
+  rit_str *result = rit_str_alloc(capacity, t_allocator);
+  result->m_size = size;
+  rit_str_set(result, t_str, t_allocator);
 
   return result;
 }
 
-rit_str *rit_str_concat(Arena *t_arena, rit_str const *t_rit_str_1,
-                        rit_str const *t_rit_str_2) {
-  size_t size = DEFAULT_STRING_SIZE;
-  if (t_rit_str_1->m_size + t_rit_str_2->m_size + 1 > DEFAULT_STRING_SIZE) {
-    size = t_rit_str_1->m_size + t_rit_str_2->m_size + 1;
+rit_str *rit_str_concat(rit_str const *t_rit_str_1, rit_str const *t_rit_str_2,
+                        rit_str_allocator *t_allocator) {
+  size_t capacity = DEFAULT_STRING_CAP;
+  size_t size = t_rit_str_1->m_size + t_rit_str_2->m_size;
+  if (size >= capacity) {
+    capacity = size * 2;
   }
-  rit_str *result = (rit_str *)arena_alloc(t_arena, sizeof(rit_str) + size);
-  result->m_size = size - 1;
+  rit_str *result = rit_str_alloc(capacity, t_allocator);
+  result->m_size = size;
   size_t index = 0;
 
   for (size_t i = 0; i < t_rit_str_1->m_size; ++i, ++index) {
@@ -143,12 +192,20 @@ rit_str *rit_str_concat(Arena *t_arena, rit_str const *t_rit_str_1,
   for (size_t i = 0; i < t_rit_str_2->m_size; ++i, ++index) {
     result->m_str[index] = t_rit_str_2->m_str[i];
   }
-  result->m_str[size - 1] = '\0';
+  result->m_str[index] = '\0';
   return result;
 }
 
-rit_str_view rit_str_view_create(char const *t_str, size_t t_index,
+rit_str_view rit_str_view_create_with_location(const char *t_file, int t_line,
+                                 const char *t_str, size_t t_index,
                                  size_t t_size) {
+  if (t_size > strlen(t_str)) {
+    fprintf(
+        stderr,
+        "The string is bigger than the specified size, file: %s, line: %d\n",
+        t_file, t_line);
+    exit(1);
+  }
   rit_str_view result;
   result.m_index = t_index;
   result.m_size = t_size;
@@ -156,16 +213,16 @@ rit_str_view rit_str_view_create(char const *t_str, size_t t_index,
   return result;
 }
 
-rit_str *rit_str_view_concat(Arena *t_arena,
-                             rit_str_view const *t_rit_str_view_1,
-                             rit_str_view const *t_rit_str_view_2) {
-  size_t size = DEFAULT_STRING_SIZE;
-  if (t_rit_str_view_1->m_size + t_rit_str_view_2->m_size + 1 >
-      DEFAULT_STRING_SIZE) {
-    size = t_rit_str_view_1->m_size + t_rit_str_view_2->m_size + 1;
+rit_str *rit_str_view_concat(rit_str_view const *t_rit_str_view_1,
+                             rit_str_view const *t_rit_str_view_2,
+                             rit_str_allocator *t_allocator) {
+  size_t capacity = DEFAULT_STRING_CAP;
+  size_t size = t_rit_str_view_1->m_size + t_rit_str_view_2->m_size;
+  if (size >= capacity) {
+    capacity = size * 2;
   }
-  rit_str *result = (rit_str *)arena_alloc(t_arena, sizeof(rit_str) + size);
-  result->m_size = size - 1;
+  rit_str *result = rit_str_alloc(capacity, t_allocator);
+  result->m_size = size;
   size_t index = 0;
 
   for (size_t i = 0; i < t_rit_str_view_1->m_size; ++i, ++index) {
@@ -174,11 +231,11 @@ rit_str *rit_str_view_concat(Arena *t_arena,
   for (size_t i = 0; i < t_rit_str_view_2->m_size; ++i, ++index) {
     result->m_str[index] = t_rit_str_view_2->m_str[i];
   }
-  result->m_str[size - 1] = '\0';
+  result->m_str[index] = '\0';
   return result;
 }
 
-void rit_str_view_print(rit_str_view const *t_rit_str_view) {
+void rit_str_view_print(const rit_str_view *const t_rit_str_view) {
   size_t index = t_rit_str_view->m_index;
 
   for (size_t i = 0; i < t_rit_str_view->m_size; ++index, ++i) {
