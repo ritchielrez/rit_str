@@ -50,13 +50,14 @@ typedef struct {
   void *(*realloc)(void *, void *, size_t, size_t);
   void *m_ctx;  // The arena, stack or etc where the memory would be allocated,
                 // NULL if none
-} rit_dyn_arr_allocator;
+} rit_str_allocator;
 ```
 
 **Example usage**:
 ```cpp
 #include <stdlib.h>
-#include "rit_dyn_arr.h"
+#define RIT_STR_IMPLEMENTATION
+#include "rit_str.h"
 #define ARENA_ALLOCATOR_IMPLEMENTATION
 #include "arena_allocator.h"
 
@@ -78,10 +79,10 @@ void *libc_realloc(void *t_ctx, void *t_old_ptr, size_t t_old_size_in_bytes,
 }
 
 int main() {
-  rit_dyn_arr_allocator ctx_allocator = {libc_malloc,
-                                         libc_free,
-                                         libc_realloc, NULL};
-  rit_dyn_arr(int, arr, 10, &ctx_allocator);
+  rit_str_allocator ctx_allocator = {libc_malloc,
+                                    libc_free,
+                                    libc_realloc, NULL};
+  rit_str *str = rit_str_create("Test", &allocator);
 }
 ```
 Only thing here to explain is maybe what is `t_ctx` doing here. `t_ctx` points
