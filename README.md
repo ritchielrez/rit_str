@@ -28,9 +28,7 @@ a new string and store it. But with string views, we can hold a pointer to the w
 in a string view, yet hold the substring in that same string view. Because it is count based, 
 we can set the count to 5 in this case, and using `rit_str_view_print()` we can print the 
 substring only, even though the string view holds a pointer to the whole string. This allows 
-to save heap allocation calls as string views are stored in stack memory. Check out this 
-[repo](https://github.com/ritchielrez/c-string-test) to learn more about how you may use 
-this feature.
+to save heap allocation calls as string views are stored in stack memory.
 
 ### How to use this library
 
