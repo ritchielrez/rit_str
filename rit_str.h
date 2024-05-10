@@ -67,7 +67,13 @@ rit_str *rit_str_create_with_location(const char *t_file, int t_line,
 /// @param t_capacity The capacity of the rit_str
 /// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator);
+#define rit_str_alloc(t_capacity, t_allocator) \
+  rit_str_alloc_with_location(__FILE__, __LINE__, t_capacity, t_allocator)
+
+/// @internal
+rit_str *rit_str_alloc_with_location(const char *t_file, int t_line,
+                                     size_t t_capacity,
+                                     rit_str_allocator *t_allocator);
 
 /// @brief Reallocate some space for an existing string
 /// @param t_rit_str Pointer to the rit_str
@@ -149,10 +155,16 @@ rit_str *rit_str_view_concat(rit_str_view const *t_rit_str_view_1,
 
 #include <string.h>
 
-rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator) {
+rit_str *rit_str_alloc_with_location(const char *t_file, int t_line,
+                                     size_t t_capacity,
+                                     rit_str_allocator *t_allocator) {
   rit_str *result = (rit_str *)t_allocator->alloc(
       t_allocator->m_ctx, sizeof(rit_str) + t_capacity + 1);
-
+  if (!result) {
+    fprintf(stderr, "String allocation failed, file: %s, line: %d\n", t_file,
+            t_line);
+    exit(1);
+  }
   result->m_capacity = t_capacity;
   return result;
 }
@@ -175,7 +187,8 @@ rit_str *rit_str_create_with_location(const char *t_file, int t_line,
     capacity = size * 2;
   }
 
-  rit_str *result = rit_str_alloc(capacity, t_allocator);
+  rit_str *result =
+      rit_str_alloc_with_location(t_file, t_line, capacity, t_allocator);
   result->m_size = size;
   rit_str_set(result, t_str, t_allocator);
 
