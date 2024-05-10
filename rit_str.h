@@ -80,7 +80,12 @@ rit_str *rit_str_alloc_with_location(const char *t_file, int t_line,
 /// @param t_capacity The new set capacity
 /// @param t_allocator Custom allocator for the function to use
 /// @return void
-void rit_str_realloc(rit_str **t_rit_str, size_t t_capacity,
+#define rit_str_realloc(t_rit_str, t_capacity, t_allocator)                \
+  rit_str_realloc_with_location(__FILE__, __LINE__, t_rit_str, t_capacity, \
+                                t_allocator)
+
+/// @internal
+void rit_str_realloc_with_location(const char *t_file, int t_line, rit_str **t_rit_str, size_t t_capacity,
                      rit_str_allocator *t_allocator);
 
 /// @brief Copy a c string to rit_str
@@ -169,11 +174,15 @@ rit_str *rit_str_alloc_with_location(const char *t_file, int t_line,
   return result;
 }
 
-void rit_str_realloc(rit_str **t_rit_str, size_t t_capacity,
+void rit_str_realloc_with_location(const char *t_file, int t_line, rit_str **t_rit_str, size_t t_capacity,
                      rit_str_allocator *t_allocator) {
   if (t_capacity > (*t_rit_str)->m_capacity) {
     *t_rit_str = t_allocator->realloc(t_allocator->m_ctx, *t_rit_str,
                                       (*t_rit_str)->m_capacity, t_capacity);
+    if (!(*t_rit_str)) {
+      fprintf(stderr, "String reallocation failed, file: %s, line: %d\n", t_file, t_line);
+      exit(1);
+    }
     (*t_rit_str)->m_capacity = t_capacity;
   }
 }
