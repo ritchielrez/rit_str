@@ -61,7 +61,7 @@ rit_str *rit_str_create(const char *t_str, rit_str_allocator *t_allocator);
 /// @param t_capacity The capacity of the rit_str
 /// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator); 
+rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator);
 
 /// @brief Reallocate some space for an existing string
 /// @param t_rit_str Pointer to the rit_str
@@ -69,7 +69,7 @@ rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator);
 /// @param t_allocator Custom allocator for the function to use
 /// @return void
 void rit_str_realloc(rit_str **t_rit_str, size_t t_capacity,
-                      rit_str_allocator *t_allocator);
+                     rit_str_allocator *t_allocator);
 
 /// @brief Copy a c string to rit_str
 /// @param t_rit_str
@@ -129,8 +129,7 @@ rit_str_view rit_str_view_create_with_location(const char *t_file, int t_line,
 /// view
 /// @param t_rit_str_view The string view
 /// @return void
-void rit_str_view_print(const rit_str_view *const t_rit_str_view) {
-
+void rit_str_view_print(const rit_str_view *const t_rit_str_view);
 /// @brief Concatenate two strings from two string views
 /// @param t_rit_str_view_1
 /// @param t_rit_str_view_2
@@ -153,7 +152,7 @@ rit_str *rit_str_alloc(size_t t_capacity, rit_str_allocator *t_allocator) {
 }
 
 void rit_str_realloc(rit_str **t_rit_str, size_t t_capacity,
-                      rit_str_allocator *t_allocator) {
+                     rit_str_allocator *t_allocator) {
   if (t_capacity > (*t_rit_str)->m_capacity) {
     *t_rit_str = t_allocator->realloc(t_allocator->m_ctx, *t_rit_str,
                                       (*t_rit_str)->m_capacity, t_capacity);
@@ -197,8 +196,8 @@ rit_str *rit_str_concat(rit_str const *t_rit_str_1, rit_str const *t_rit_str_2,
 }
 
 rit_str_view rit_str_view_create_with_location(const char *t_file, int t_line,
-                                 const char *t_str, size_t t_index,
-                                 size_t t_size) {
+                                               const char *t_str,
+                                               size_t t_index, size_t t_size) {
   if (t_size > strlen(t_str)) {
     fprintf(
         stderr,
@@ -251,20 +250,21 @@ The MIT License (MIT)
 
 Copyright 2024 Ritchiel Reza
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the “Software”), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the “Software”), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
