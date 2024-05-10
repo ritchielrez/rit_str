@@ -35,7 +35,7 @@ to save heap allocation calls as string views are stored in stack memory.
 Just copy and past the file `rit_str.h` in your project. Then add these lines to your
 source files: 
 ```cpp
-#define C_STRING_TEST_IMPLEMENTATION
+#define RIT_STR_IMPLEMENTATION
 #include "rit_str.h"
 ```
 
