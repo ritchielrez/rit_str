@@ -93,18 +93,39 @@ void rit_str_realloc_with_location(const char *t_file, int t_line, rit_str **t_r
 /// @param t_str The c string
 /// @param t_allocator Custom allocator for the function to use
 /// @return void
-#define rit_str_set(t_rit_str, t_str, t_allocator)                 \
-  do {                                                             \
-    if (t_rit_str->m_capacity < strlen(t_str)) {                   \
-      rit_str_realloc(&t_rit_str, strlen(t_str) * 2, t_allocator); \
-      t_rit_str->m_size = strlen(t_str);                           \
-    }                                                              \
-    size_t i;                                                      \
-                                                                   \
-    for (i = 0; i < strlen(t_str); ++i) {                          \
-      t_rit_str->m_str[i] = t_str[i];                              \
-    }                                                              \
-    t_rit_str->m_str[i] = '\0';                                    \
+#define rit_str_copy_from_cstr(t_rit_str, t_str, t_allocator)        \
+  do {                                                               \
+    if (t_rit_str->m_capacity < strlen(t_str)) {                     \
+      rit_str_realloc_with_location(__FILE__, __LINE__, &t_rit_str,  \
+                                    strlen(t_str) * 2, t_allocator); \
+    }                                                                \
+    t_rit_str->m_size = strlen(t_str);                               \
+    size_t i;                                                        \
+                                                                     \
+    for (i = 0; i < t_rit_str->m_size; ++i) {                        \
+      t_rit_str->m_str[i] = t_str[i];                                \
+    }                                                                \
+    t_rit_str->m_str[i] = '\0';                                      \
+  } while (0)
+
+/// @brief Copy a rit_str to a rit_str
+/// @param t_rit_str Where to copy
+/// @param t_rit_str_other What to copy
+/// @param t_allocator Custom allocator for the function to use
+/// @return void
+#define rit_str_copy_from_rit_str(t_rit_str, t_rit_str_other, t_allocator)     \
+  do {                                                                         \
+    if (t_rit_str->m_capacity < t_rit_str_other->m_capacity) {                 \
+      rit_str_realloc_with_location(__FILE__, __LINE__, &t_rit_str,            \
+                                    t_rit_str_other->m_capacity, t_allocator); \
+    }                                                                          \
+    t_rit_str->m_size = t_rit_str_other->m_size;                               \
+    size_t i;                                                                  \
+                                                                               \
+    for (i = 0; i < t_rit_str->m_size; ++i) {                                  \
+      t_rit_str->m_str[i] = t_rit_str_other->m_str[i];                         \
+    }                                                                          \
+    t_rit_str->m_str[i] = '\0';                                                \
   } while (0)
 
 /// @brief Concatenate two strings
