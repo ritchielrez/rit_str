@@ -51,18 +51,6 @@ struct rit_str_view {
   char const *m_str;
 };
 
-/// @brief Allocates a new string
-/// @param t_str The string to be allocated
-/// @param t_allocator Custom allocator for the function to use
-/// @return rit_str*
-#define rit_str_create(t_str, t_allocator) \
-  rit_str_create_with_location(__FILE__, __LINE__, t_str, t_allocator)
-
-/// @internal
-rit_str *rit_str_create_with_location(const char *t_file, int t_line,
-                                      const char *t_str,
-                                      rit_str_allocator *t_allocator);
-
 /// @brief Allocate some space for a new string
 /// @param t_capacity The capacity of the rit_str
 /// @param t_allocator Custom allocator for the function to use
@@ -87,6 +75,25 @@ rit_str *rit_str_alloc_with_location(const char *t_file, int t_line,
 /// @internal
 void rit_str_realloc_with_location(const char *t_file, int t_line, rit_str **t_rit_str, size_t t_capacity,
                      rit_str_allocator *t_allocator);
+
+/// @brief Free a rit_str
+/// @param t_rit_str
+/// @param t_allocator Custom allocator for the function to use
+inline void rit_str_free(rit_str *t_rit_str, rit_str_allocator *t_allocator) {
+  t_allocator->free(t_allocator->m_ctx, t_rit_str);
+}
+
+/// @brief Allocates a new string
+/// @param t_str The string to be allocated
+/// @param t_allocator Custom allocator for the function to use
+/// @return rit_str*
+#define rit_str_create(t_str, t_allocator) \
+  rit_str_create_with_location(__FILE__, __LINE__, t_str, t_allocator)
+
+/// @internal
+rit_str *rit_str_create_with_location(const char *t_file, int t_line,
+                                      const char *t_str,
+                                      rit_str_allocator *t_allocator);
 
 /// @brief Copy a c string to rit_str
 /// @param t_rit_str
@@ -133,15 +140,15 @@ void rit_str_realloc_with_location(const char *t_file, int t_line, rit_str **t_r
 /// @param t_rit_str_2
 /// @param t_allocator Custom allocator for the function to use
 /// @return rit_str*
-rit_str *rit_str_concat(rit_str const *t_rit_str_1, rit_str const *t_rit_str_2,
-                        rit_str_allocator *t_allocator);
+#define rit_str_concat(t_rit_str_1, t_rit_str_2, t_allocator)                \
+  rit_str_concat_with_location(__FILE__, __LINE__, t_rit_str_1, t_rit_str_2, \
+                               t_allocator)
 
-/// @brief Free a rit_str
-/// @param t_rit_str
-/// @param t_allocator Custom allocator for the function to use
-inline void rit_str_free(rit_str *t_rit_str, rit_str_allocator *t_allocator) {
-  t_allocator->free(t_allocator->m_ctx, t_rit_str);
-}
+/// @internal
+rit_str *rit_str_concat_with_location(const char *t_file, int t_line,
+                                      rit_str const *t_rit_str_1,
+                                      rit_str const *t_rit_str_2,
+                                      rit_str_allocator *t_allocator);
 
 /// @brief Create a string view of a string or substring
 /// A string view is a non owning reference to a string.
@@ -167,7 +174,8 @@ rit_str_view rit_str_view_create_with_location(const char *t_file, int t_line,
 /// view
 /// @param t_rit_str_view The string view
 /// @return void
-void rit_str_view_print(const rit_str_view *const t_rit_str_view);
+void rit_str_view_print(const rit_str_view *t_rit_str_view);
+
 /// @brief Concatenate two strings from two string views
 /// @param t_rit_str_view_1
 /// @param t_rit_str_view_2
@@ -220,19 +228,22 @@ rit_str *rit_str_create_with_location(const char *t_file, int t_line,
   rit_str *result =
       rit_str_alloc_with_location(t_file, t_line, capacity, t_allocator);
   result->m_size = size;
-  rit_str_set(result, t_str, t_allocator);
+  rit_str_copy_from_cstr(result, t_str, t_allocator);
 
   return result;
 }
 
-rit_str *rit_str_concat(rit_str const *t_rit_str_1, rit_str const *t_rit_str_2,
-                        rit_str_allocator *t_allocator) {
+rit_str *rit_str_concat_with_location(const char *t_file, int t_line,
+                                      rit_str const *t_rit_str_1,
+                                      rit_str const *t_rit_str_2,
+                                      rit_str_allocator *t_allocator) {
   size_t capacity = DEFAULT_STRING_CAP;
   size_t size = t_rit_str_1->m_size + t_rit_str_2->m_size;
   if (size >= capacity) {
     capacity = size * 2;
   }
-  rit_str *result = rit_str_alloc(capacity, t_allocator);
+  rit_str *result =
+      rit_str_alloc_with_location(t_file, t_line, capacity, t_allocator);
   result->m_size = size;
   size_t index = 0;
 
@@ -285,7 +296,7 @@ rit_str *rit_str_view_concat(rit_str_view const *t_rit_str_view_1,
   return result;
 }
 
-void rit_str_view_print(const rit_str_view *const t_rit_str_view) {
+void rit_str_view_print(const rit_str_view *t_rit_str_view) {
   size_t index = t_rit_str_view->m_index;
 
   for (size_t i = 0; i < t_rit_str_view->m_size; ++index, ++i) {
