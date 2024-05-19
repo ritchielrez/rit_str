@@ -12,6 +12,10 @@
 
 #define DEFAULT_STR_CAP 16
 
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////DECLARATION///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 /// @brief Custom allocator interface.
 /// Functions allocating memory takes a custom allocator based off this
 /// interface as a parameter.
@@ -38,22 +42,27 @@ typedef struct {
   rit_str_alloc_with_location(__FILE__, __LINE__, t_size, t_allocator)
 
 /// @internal
-inline char *rit_str_alloc_with_location(const char *t_file, int t_line,
-                                         size_t t_size,
-                                         rit_str_allocator *t_allocator) {
-  size_t capacity = DEFAULT_STR_CAP < t_size * 2 ? t_size * 2 : DEFAULT_STR_CAP;
-  rit_str_metadata *arr = (rit_str_metadata *)t_allocator->alloc(
-      t_allocator->m_ctx, sizeof(rit_str_metadata) + capacity);
-  if (!arr) {
-    fprintf(stderr, "Error: allocation failed, file: %s, line: %d\n", t_file,
-            t_line);
-    exit(EXIT_FAILURE);
-  }
-  arr->m_size = t_size;
-  arr->m_capacity = capacity;
-  arr += 1;
-  return (char *)arr;
-}
+char *rit_str_alloc_with_location(const char *t_file, int t_line, size_t t_size,
+                                  rit_str_allocator *t_allocator);
+
+/// @brief Set the capacity of a string.
+#define rit_str_reserve(t_rit_str, t_new_capacity, t_allocator) \
+  rit_str_realloc(__FILE__, __LINE__, &t_rit_str, t_new_capacity, t_allocator)
+
+/// @internal
+void rit_str_realloc(const char *t_file, int t_line, char **t_rit_str,
+                     size_t t_new_capacity, rit_str_allocator *t_allocator);
+
+#define rit_str_swap(t_rit_str, t_rit_str_other) \
+  do {                                           \
+    void *tmp = t_rit_str;                       \
+    t_rit_str = t_rit_str_other;                 \
+    t_rit_str_other = tmp;                       \
+  } while (0)
+
+/// @brief Makes a non-binding request to make the capacity of a string equal to
+/// its size. In this library this is definied as a no-op function.
+inline void shrink_to_fit(char *t_rit_str) { (void)t_rit_str; }
 
 inline void rit_str_free(char *t_rit_str, rit_str_allocator *t_allocator) {
   t_allocator->free(t_allocator->m_ctx, t_rit_str);
@@ -65,30 +74,6 @@ inline size_t rit_str_size(char *t_rit_str) {
 
 inline size_t rit_str_capacity(char *t_rit_str) {
   return rit_str_get_metadata(t_rit_str)->m_capacity;
-}
-
-/// @brief Set the capacity of a string.
-#define rit_str_reserve(t_rit_str, t_new_capacity, t_allocator) \
-  rit_str_realloc(__FILE__, __LINE__, &t_rit_str, t_new_capacity, t_allocator)
-
-/// @internal
-inline void rit_str_realloc(const char *t_file, int t_line, char **t_rit_str,
-                            size_t t_new_capacity,
-                            rit_str_allocator *t_allocator) {
-  if (t_new_capacity > rit_str_capacity(*t_rit_str)) {
-    rit_str_metadata *arr = (rit_str_metadata *)t_allocator->realloc(
-        t_allocator->m_ctx, rit_str_get_metadata(*t_rit_str),
-        sizeof(rit_str_metadata) + rit_str_capacity(*t_rit_str),
-        sizeof(rit_str_metadata) + t_new_capacity);
-    if (!arr) {
-      fprintf(stderr, "Error: reallocation failed, file: %s, line: %d\n",
-              t_file, t_line);
-      exit(EXIT_FAILURE);
-    }
-    arr += 1;
-    *t_rit_str = (char *)arr;
-    rit_str_get_metadata(*t_rit_str)->m_capacity = t_new_capacity;
-  }
 }
 
 /// @internal
@@ -110,17 +95,6 @@ inline void rit_str_clear(char *t_rit_str) {
   rit_str_get_metadata(t_rit_str)->m_size = 0;
   t_rit_str[0] = '\0';
 }
-
-#define rit_str_swap(t_rit_str, t_rit_str_other) \
-  do {                                           \
-    void *tmp = t_rit_str;                       \
-    t_rit_str = t_rit_str_other;                 \
-    t_rit_str_other = tmp;                       \
-  } while (0)
-
-/// @brief Makes a non-binding request to make the capacity of a string equal to
-/// its size. In this library this is definied as a no-op function.
-inline void shrink_to_fit(char *t_rit_str) { (void)t_rit_str; }
 
 /// @brief Initialize a rit_str.
 #define rit_str(t_rit_str, t_cstr, t_allocator)                               \
@@ -210,7 +184,77 @@ inline void shrink_to_fit(char *t_rit_str) { (void)t_rit_str; }
   rit_str_copy_cstr_with_location(__FILE__, __LINE__, t_rit_str, t_index,   \
                                   t_count, t_cstr, t_allocator)
 
+///@internal
+void rit_str_copy_cstr_with_location(const char *t_file, size_t t_line,
+                                     char *t_rit_str, size_t t_index,
+                                     size_t t_count, char *t_cstr,
+                                     rit_str_allocator *t_allocator);
+
+/// @param t_rit_str Where to copy
+/// @param t_rit_str_other What to copy
+#define rit_str_copy_rit_str(t_rit_str, t_index, t_count, t_rit_str_other,   \
+                             t_allocator)                                    \
+  rit_str_copy_rit_str_with_location(__FILE__, __LINE__, t_rit_str, t_index, \
+                                     t_count, t_rit_str_other, t_allocator)
+
+///@internal
+void rit_str_copy_rit_str_with_location(const char *t_file, size_t t_line,
+                                        char *t_rit_str, size_t t_index,
+                                        size_t t_count, char *t_rit_str_other,
+                                        rit_str_allocator *t_allocator);
+
+/// @param t_index Starting index of the substring
+/// @param t_count Number of characters in the substring
+#define rit_str_replace(t_rit_str, t_index, t_count, t_cstr, t_allocator) \
+  rit_str_replace_with_location(__FILE__, __LINE__, t_rit_str, t_index,   \
+                                t_count, t_cstr, t_allocator)
+
 /// @internal
+void rit_str_replace_with_location(const char *t_file, size_t t_line,
+                                   char *t_rit_str, size_t t_index,
+                                   size_t t_count, const char *t_cstr,
+                                   rit_str_allocator *t_allocator);
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////IMPLEMENTATION//////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+#ifdef RIT_STR_IMPLEMENTATION
+
+char *rit_str_alloc_with_location(const char *t_file, int t_line, size_t t_size,
+                                  rit_str_allocator *t_allocator) {
+  size_t capacity = DEFAULT_STR_CAP < t_size * 2 ? t_size * 2 : DEFAULT_STR_CAP;
+  rit_str_metadata *arr = (rit_str_metadata *)t_allocator->alloc(
+      t_allocator->m_ctx, sizeof(rit_str_metadata) + capacity);
+  if (!arr) {
+    fprintf(stderr, "Error: allocation failed, file: %s, line: %d\n", t_file,
+            t_line);
+    exit(EXIT_FAILURE);
+  }
+  arr->m_size = t_size;
+  arr->m_capacity = capacity;
+  arr += 1;
+  return (char *)arr;
+}
+
+void rit_str_realloc(const char *t_file, int t_line, char **t_rit_str,
+                     size_t t_new_capacity, rit_str_allocator *t_allocator) {
+  if (t_new_capacity > rit_str_capacity(*t_rit_str)) {
+    rit_str_metadata *arr = (rit_str_metadata *)t_allocator->realloc(
+        t_allocator->m_ctx, rit_str_get_metadata(*t_rit_str),
+        sizeof(rit_str_metadata) + rit_str_capacity(*t_rit_str),
+        sizeof(rit_str_metadata) + t_new_capacity);
+    if (!arr) {
+      fprintf(stderr, "Error: reallocation failed, file: %s, line: %d\n",
+              t_file, t_line);
+      exit(EXIT_FAILURE);
+    }
+    arr += 1;
+    *t_rit_str = (char *)arr;
+    rit_str_get_metadata(*t_rit_str)->m_capacity = t_new_capacity;
+  }
+}
+
 void rit_str_copy_cstr_with_location(const char *t_file, size_t t_line,
                                      char *t_rit_str, size_t t_index,
                                      size_t t_count, char *t_cstr,
@@ -244,14 +288,6 @@ void rit_str_copy_cstr_with_location(const char *t_file, size_t t_line,
   }
 }
 
-/// @param t_rit_str Where to copy
-/// @param t_rit_str_other What to copy
-#define rit_str_copy_rit_str(t_rit_str, t_index, t_count, t_rit_str_other,   \
-                             t_allocator)                                    \
-  rit_str_copy_rit_str_with_location(__FILE__, __LINE__, t_rit_str, t_index, \
-                                     t_count, t_rit_str_other, t_allocator)
-
-/// @internal
 void rit_str_copy_rit_str_with_location(const char *t_file, size_t t_line,
                                         char *t_rit_str, size_t t_index,
                                         size_t t_count, char *t_rit_str_other,
@@ -283,13 +319,6 @@ void rit_str_copy_rit_str_with_location(const char *t_file, size_t t_line,
   }
 }
 
-/// @param t_index Starting index of the substring
-/// @param t_count Number of characters in the substring
-#define rit_str_replace(t_rit_str, t_index, t_count, t_cstr, t_allocator) \
-  rit_str_replace_with_location(__FILE__, __LINE__, t_rit_str, t_index,   \
-                                t_count, t_cstr, t_allocator)
-
-/// @internal
 void rit_str_replace_with_location(const char *t_file, size_t t_line,
                                    char *t_rit_str, size_t t_index,
                                    size_t t_count, const char *t_cstr,
@@ -324,6 +353,7 @@ void rit_str_replace_with_location(const char *t_file, size_t t_line,
   }
 }
 
+#endif  // RIT_STR_IMPLEMENTATION
 #endif  // RIT_STR_H_INCLUDED
 /*
 The MIT License (MIT)

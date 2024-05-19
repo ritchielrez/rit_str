@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define RIT_STR_IMPLEMENTATION
 #include "../rit_str.h"
 
 #define nullptr (void *)0
