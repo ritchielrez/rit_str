@@ -62,7 +62,20 @@ void rit_str_realloc(const char *t_file, int t_line, char **t_rit_str,
 
 /// @brief Makes a non-binding request to make the capacity of a string equal to
 /// its size. In this library this is definied as a no-op function.
-inline void shrink_to_fit(char *t_rit_str) { (void)t_rit_str; }
+inline void rit_str_shrink_to_fit(char *t_rit_str) { (void)t_rit_str; }
+
+/// @brief Returns a pointer to a null-terminated character array with data
+/// equivalent to those stored in the string.
+inline const char *rit_str_cstr(char *t_rit_str) {
+	const char *retptr = t_rit_str;
+	return retptr;
+}
+
+/// @brief Returns a pointer to a null-terminated character array with data
+/// equivalent to those stored in the string.
+inline const char *rit_str_data(char *t_rit_str) {
+	return rit_str_cstr(t_rit_str);
+}
 
 inline void rit_str_free(char *t_rit_str, rit_str_allocator *t_allocator) {
   t_allocator->free(t_allocator->m_ctx, t_rit_str);

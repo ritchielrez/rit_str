@@ -34,7 +34,7 @@ int main() {
 
   char *str2 = rit_str_alloc(strlen("Hello world"), &allocator);
   // If the size of substring is set to 0, then size is actually set to
-  // strlen("Hello World") - index, in this case
+  // strlen("Hello World") - index, in this case.
   rit_str_copy_cstr(str2, 0, 0, "Hello world", &allocator);
   // rit_str_copy_rit_str(str2, 0, 0, str, &allocator);
   rit_str_append_str(str2, "ello world", &allocator);
@@ -56,4 +56,8 @@ int main() {
   rit_str_resize(str2, 12, 'h', &allocator);
   printf("size: %zu, cap: %zu, str: %s\n", rit_str_size(str2),
          rit_str_capacity(str2), str2);
+
+  const char *cstr = rit_str_data(str);  // same as rit_str_cstr(str)
+  // May cause program to crash, you are not suppose to free this pointer.
+  free(cstr);
 }
