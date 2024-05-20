@@ -189,19 +189,15 @@ inline void rit_str_clear(char *t_rit_str) {
     rit_str_remove(t_rit_str, t_count);                                    \
   } while (0)
 
-/// @param t_rit_str Where to copy
-/// @param t_rit_str_other What to copy
-/// @param t_index Starting index of substring of t_rit_str_other
-/// @param t_count Size of substring of t_rit_str_other
-#define rit_str_copy_cstr(t_rit_str, t_index, t_count, t_cstr, t_allocator) \
-  rit_str_copy_cstr_with_location(__FILE__, __LINE__, t_rit_str, t_index,   \
-                                  t_count, t_cstr, t_allocator)
-
-///@internal
-void rit_str_copy_cstr_with_location(const char *t_file, size_t t_line,
-                                     char *t_rit_str, size_t t_index,
-                                     size_t t_count, char *t_cstr,
-                                     rit_str_allocator *t_allocator);
+/// @param t_rit_str Where to assign
+/// @param t_cstr What to assign
+inline void rit_str_assign(char *t_rit_str, char *t_cstr,
+                           rit_str_allocator *t_allocator) {
+  rit_str_clear(t_rit_str);
+  for (size_t i = 0; i < strlen(t_cstr); i++) {
+    rit_str_push_back(t_rit_str, t_cstr[i], t_allocator);
+  }
+}
 
 /// @param t_rit_str Where to copy
 /// @param t_rit_str_other What to copy
@@ -268,47 +264,14 @@ void rit_str_realloc(const char *t_file, int t_line, char **t_rit_str,
   }
 }
 
-void rit_str_copy_cstr_with_location(const char *t_file, size_t t_line,
-                                     char *t_rit_str, size_t t_index,
-                                     size_t t_count, char *t_cstr,
-                                     rit_str_allocator *t_allocator) {
-  if (t_index > strlen(t_cstr)) {
-    fprintf(stderr,
-            "Error: starting index of substring out of bounds of the string, "
-            "file: %s, line: %zu\n",
-            t_file, t_line);
-    exit(EXIT_FAILURE);
-  } else if (t_count == 0) {
-    t_count = strlen(t_cstr) - t_index;
-  } else if (t_index + t_count > strlen(t_cstr)) {
-    fprintf(stderr,
-            "Error: size of substring greater than the string, file: %s, line: "
-            "%zu\n",
-            t_file, t_line);
-    exit(EXIT_FAILURE);
-  }
-  if (rit_str_size(t_rit_str) < t_count) {
-    size_t size = t_count - rit_str_size(t_rit_str);
-    rit_str_append_char(t_rit_str, size, ' ', t_allocator);
-  } else if (rit_str_size(t_rit_str) > t_count) {
-    size_t size = rit_str_size(t_rit_str) - t_count;
-    for (size_t count = 1; count <= size; count++) {
-      rit_str_pop_back(t_rit_str);
-    }
-  }
-  for (size_t i = 0, j = t_index; i < t_count; i++, j++) {
-    rit_str_set(t_rit_str, i, t_cstr[j]);
-  }
-}
-
-void rit_str_copy_rit_str_with_location(const char *t_file, size_t t_line,
-                                        char *t_rit_str, size_t t_index,
-                                        size_t t_count, char *t_rit_str_other,
-                                        rit_str_allocator *t_allocator) {
+void rit_str_copy_with_location(const char *t_file, int t_line, char *t_rit_str,
+                                size_t t_index, size_t t_count,
+                                char *t_rit_str_other,
+                                rit_str_allocator *t_allocator) {
   if (t_index > rit_str_size(t_rit_str_other)) {
     fprintf(stderr,
             "Error: starting index of substring out of bounds of the string, "
-            "file: %s, line: %zu\n",
+            "file: %s, line: %d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
   } else if (t_count == 0) {
