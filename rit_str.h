@@ -37,7 +37,7 @@ typedef struct {
 /// @brief Non owning reference to a string
 struct rit_str_view {
   size_t m_size;
-  char *m_str;
+  const char *m_str;
 };
 
 /// @brief Get the pointer to the metadata header struct of a string.
@@ -237,15 +237,21 @@ void rit_str_replace_with_location(const char *t_file, int t_line,
 #define rit_str_view_size(t_rit_str_view) t_rit_str_view.m_size
 
 /// @internal
-bool rit_str_view_index_bounds_check(const char *t_file, int t_line,
-                                     struct rit_str_view *t_rit_str_view,
+inline bool rit_str_view_index_bounds_check(const char *t_file, int t_line,
+                                     struct rit_str_view t_rit_str_view,
                                      size_t t_index) {
-  if (t_index < rit_str_view_size((*t_rit_str_view))) return true;
+  if (t_index < rit_str_view_size((t_rit_str_view))) return true;
   fprintf(stderr,
           "Error: string_view index is out of bounds, file: %s, line: %d\n",
           t_file, t_line);
   exit(EXIT_FAILURE);
 }
+
+#define rit_str_view_at(t_rit_str_view, t_index)                       \
+  (rit_str_view_index_bounds_check(__FILE__, __LINE__, t_rit_str_view, \
+                                   t_index))                           \
+      ? t_rit_str_view.m_str[t_index]                                  \
+      : t_rit_str_view.m_str[t_index]
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////IMPLEMENTATION//////////////////////////////////

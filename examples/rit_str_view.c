@@ -31,4 +31,5 @@ rit_str_allocator allocator = {libc_malloc, libc_free, libc_realloc, nullptr};
 
 int main() {
 	rit_str_view(str_view, "Hello");
+  putchar(rit_str_view_at(str_view, 12));
 }
