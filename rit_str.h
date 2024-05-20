@@ -154,8 +154,8 @@ inline void rit_str_clear(char *t_rit_str) {
   rit_str_get_metadata(t_rit_str)->m_size--; \
   t_rit_str[rit_str_size(t_rit_str)] = '\0'
 
-#define rit_str_append_char(t_rit_str, t_count, t_char, t_allocator) \
-  for (size_t i = 1; i <= t_count; i++) {                            \
+#define rit_str_append_char(t_rit_str, t_size, t_char, t_allocator) \
+  for (size_t i = 1; i <= t_size; i++) {                            \
     rit_str_push_back(t_rit_str, t_char, t_allocator);               \
   }
 
@@ -165,34 +165,34 @@ inline void rit_str_clear(char *t_rit_str) {
   }
 
 /// @brief Remove elements from the end of the string
-#define rit_str_remove(t_rit_str, t_count) \
-  for (size_t i = 1; i <= t_count; i++) {  \
+#define rit_str_remove(t_rit_str, t_size) \
+  for (size_t i = 1; i <= t_size; i++) {  \
     rit_str_pop_back(t_rit_str);           \
   }
 
 /// @brief Changes the number of characters stored
-#define rit_str_resize(t_rit_str, t_count, t_char, t_allocator) \
+#define rit_str_resize(t_rit_str, t_size, t_char, t_allocator) \
   rit_str_clear(t_rit_str);                                     \
-  rit_str_append_char(t_rit_str, t_count, t_char, t_allocator)
+  rit_str_append_char(t_rit_str, t_size, t_char, t_allocator)
 
 /// @brief Insert characters in the array at t_index.
-#define rit_str_insert(t_rit_str, t_index, t_count, t_char, t_allocator) \
+#define rit_str_insert(t_rit_str, t_index, t_size, t_char, t_allocator) \
   do {                                                                   \
-    rit_str_append_char(t_rit_str, t_count, t_char, t_allocator);        \
-    for (size_t i = rit_str_size(t_rit_str) - 1; i >= t_index + t_count; \
+    rit_str_append_char(t_rit_str, t_size, t_char, t_allocator);        \
+    for (size_t i = rit_str_size(t_rit_str) - 1; i >= t_index + t_size; \
          i--) {                                                          \
-      rit_str_set(t_rit_str, i, rit_str_at(t_rit_str, i - t_count));     \
-      rit_str_set(t_rit_str, i - t_count, t_char);                       \
+      rit_str_set(t_rit_str, i, rit_str_at(t_rit_str, i - t_size));     \
+      rit_str_set(t_rit_str, i - t_size, t_char);                       \
     }                                                                    \
   } while (0)
 
 /// @brief Remove characters in the array at t_index.
-#define rit_str_erase(t_rit_str, t_index, t_count)                         \
+#define rit_str_erase(t_rit_str, t_index, t_size)                         \
   do {                                                                     \
-    for (size_t i = t_index + t_count; i < rit_str_size(t_rit_str); i++) { \
-      rit_str_set(t_rit_str, i - t_count, rit_str_at(t_rit_str, i));       \
+    for (size_t i = t_index + t_size; i < rit_str_size(t_rit_str); i++) { \
+      rit_str_set(t_rit_str, i - t_size, rit_str_at(t_rit_str, i));       \
     }                                                                      \
-    rit_str_remove(t_rit_str, t_count);                                    \
+    rit_str_remove(t_rit_str, t_size);                                    \
   } while (0)
 
 /// @param t_rit_str Where to assign
@@ -207,27 +207,27 @@ inline void rit_str_assign(char *t_rit_str, char *t_cstr,
 
 /// @param t_rit_str Where to copy
 /// @param t_rit_str_other What to copy
-#define rit_str_copy(t_rit_str, t_index, t_count, t_rit_str_other,            \
+#define rit_str_copy(t_rit_str, t_index, t_size, t_rit_str_other,            \
                      t_allocator)                                             \
-  rit_str_copy_with_location(__FILE__, __LINE__, t_rit_str, t_index, t_count, \
+  rit_str_copy_with_location(__FILE__, __LINE__, t_rit_str, t_index, t_size, \
                              t_rit_str_other, t_allocator)
 
 ///@internal
 void rit_str_copy_with_location(const char *t_file, int t_line, char *t_rit_str,
-                                size_t t_index, size_t t_count,
+                                size_t t_index, size_t t_size,
                                 char *t_rit_str_other,
                                 rit_str_allocator *t_allocator);
 
 /// @param t_index Starting index of the substring
-/// @param t_count Number of characters in the substring
-#define rit_str_replace(t_rit_str, t_index, t_count, t_cstr, t_allocator) \
+/// @param t_size Number of characters in the substring
+#define rit_str_replace(t_rit_str, t_index, t_size, t_cstr, t_allocator) \
   rit_str_replace_with_location(__FILE__, __LINE__, t_rit_str, t_index,   \
-                                t_count, t_cstr, t_allocator)
+                                t_size, t_cstr, t_allocator)
 
 /// @internal
 void rit_str_replace_with_location(const char *t_file, int t_line,
                                    char *t_rit_str, size_t t_index,
-                                   size_t t_count, const char *t_cstr,
+                                   size_t t_size, const char *t_cstr,
                                    rit_str_allocator *t_allocator);
 
 /// @param t_str A c string or rit_str
@@ -294,7 +294,7 @@ void rit_str_realloc(const char *t_file, int t_line, char **t_rit_str,
 }
 
 void rit_str_copy_with_location(const char *t_file, int t_line, char *t_rit_str,
-                                size_t t_index, size_t t_count,
+                                size_t t_index, size_t t_size,
                                 char *t_rit_str_other,
                                 rit_str_allocator *t_allocator) {
   if (t_index > rit_str_size(t_rit_str_other)) {
@@ -303,30 +303,30 @@ void rit_str_copy_with_location(const char *t_file, int t_line, char *t_rit_str,
             "file: %s, line: %d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
-  } else if (t_count == 0) {
-    t_count = rit_str_size(t_rit_str_other) - t_index;
-  } else if (t_index + t_count > rit_str_size(t_rit_str_other)) {
+  } else if (t_size == 0) {
+    t_size = rit_str_size(t_rit_str_other) - t_index;
+  } else if (t_index + t_size > rit_str_size(t_rit_str_other)) {
     fprintf(stderr,
             "Error: size of substring greater than the string, file: %s, line: "
             "%d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
   }
-  if (rit_str_size(t_rit_str) < t_count) {
-    size_t size = t_count - rit_str_size(t_rit_str);
+  if (rit_str_size(t_rit_str) < t_size) {
+    size_t size = t_size - rit_str_size(t_rit_str);
     rit_str_append_char(t_rit_str, size, ' ', t_allocator);
-  } else if (rit_str_size(t_rit_str) > t_count) {
-    size_t size = rit_str_size(t_rit_str) - t_count;
+  } else if (rit_str_size(t_rit_str) > t_size) {
+    size_t size = rit_str_size(t_rit_str) - t_size;
     rit_str_remove(t_rit_str, size);
   }
-  for (size_t i = 0, j = t_index; i < t_count; i++, j++) {
+  for (size_t i = 0, j = t_index; i < t_size; i++, j++) {
     rit_str_set(t_rit_str, i, rit_str_at(t_rit_str_other, j));
   }
 }
 
 void rit_str_replace_with_location(const char *t_file, int t_line,
                                    char *t_rit_str, size_t t_index,
-                                   size_t t_count, const char *t_cstr,
+                                   size_t t_size, const char *t_cstr,
                                    rit_str_allocator *t_allocator) {
   if (t_index > rit_str_size(t_rit_str)) {
     fprintf(stderr,
@@ -334,23 +334,23 @@ void rit_str_replace_with_location(const char *t_file, int t_line,
             "file: %s, line: %d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
-  } else if (t_count == 0) {
+  } else if (t_size == 0) {
     fprintf(stderr,
             "Error: size of substring cannot be 0, file: %s, line: %d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
-  } else if (t_index + t_count > rit_str_size(t_rit_str)) {
+  } else if (t_index + t_size > rit_str_size(t_rit_str)) {
     fprintf(stderr,
             "Error: size of substring greater than the string, file: %s, line: "
             "%d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
   }
-  if (t_count < strlen(t_cstr)) {
-    size_t count = strlen(t_cstr) - t_count;
+  if (t_size < strlen(t_cstr)) {
+    size_t count = strlen(t_cstr) - t_size;
     rit_str_insert(t_rit_str, t_index, count, ' ', t_allocator);
-  } else if (t_count > strlen(t_cstr)) {
-    size_t count = t_count - strlen(t_cstr);
+  } else if (t_size > strlen(t_cstr)) {
+    size_t count = t_size - strlen(t_cstr);
     rit_str_erase(t_rit_str, t_index, count);
   }
   for (size_t i = t_index, j = 0; j < strlen(t_cstr); i++, j++) {
