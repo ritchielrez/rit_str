@@ -34,6 +34,12 @@ typedef struct {
   size_t m_capacity;
 } rit_str_metadata;
 
+/// @brief Non owning reference to a string
+struct rit_str_view {
+  size_t m_size;
+  char *m_str;
+};
+
 /// @brief Get the pointer to the metadata header struct of a string.
 /// @param t_rit_str The string
 #define rit_str_get_metadata(t_rit_str) (&((rit_str_metadata *)t_rit_str)[-1])
@@ -67,14 +73,14 @@ inline void rit_str_shrink_to_fit(char *t_rit_str) { (void)t_rit_str; }
 /// @brief Returns a pointer to a null-terminated character array with data
 /// equivalent to those stored in the string.
 inline const char *rit_str_cstr(char *t_rit_str) {
-	const char *retptr = t_rit_str;
-	return retptr;
+  const char *retptr = t_rit_str;
+  return retptr;
 }
 
 /// @brief Returns a pointer to a null-terminated character array with data
 /// equivalent to those stored in the string.
 inline const char *rit_str_data(char *t_rit_str) {
-	return rit_str_cstr(t_rit_str);
+  return rit_str_cstr(t_rit_str);
 }
 
 inline void rit_str_free(char *t_rit_str, rit_str_allocator *t_allocator) {
@@ -223,6 +229,23 @@ void rit_str_replace_with_location(const char *t_file, int t_line,
                                    char *t_rit_str, size_t t_index,
                                    size_t t_count, const char *t_cstr,
                                    rit_str_allocator *t_allocator);
+
+/// @param t_str A c string or rit_str
+#define rit_str_view(t_rit_str_view, t_str) \
+  struct rit_str_view t_rit_str_view = {.m_size = strlen(t_str), .m_str = t_str}
+
+#define rit_str_view_size(t_rit_str_view) t_rit_str_view.m_size
+
+/// @internal
+bool rit_str_view_index_bounds_check(const char *t_file, int t_line,
+                                     struct rit_str_view *t_rit_str_view,
+                                     size_t t_index) {
+  if (t_index < rit_str_view_size((*t_rit_str_view))) return true;
+  fprintf(stderr,
+          "Error: string_view index is out of bounds, file: %s, line: %d\n",
+          t_file, t_line);
+  exit(EXIT_FAILURE);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////IMPLEMENTATION//////////////////////////////////
