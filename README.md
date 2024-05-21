@@ -102,9 +102,6 @@ For some example usage code, check out [this](./examples/).
 
 ### Known issues
 ##### Not everything is yet implemented, such as:
-- Functions to get the string from `rit_str` and `rit_str_view`
-- Remove the need for `rit_str_view_print()`
-- string copy, like `strcopy`
 - probably a better way to convert a `rit_str` to `rit_str_view`
 
 Feel free to open a new GitHub issue or pull request to suggest any changes!!
