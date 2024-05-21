@@ -35,7 +35,7 @@ int main() {
   char *str2 = rstr_alloc(strlen("Hello world"), &allocator);
   // If the size of substring is set to 0, then size is actually set to
   // strlen("Hello World") - index, in this case.
-  // rstr_copy(str2, 0, 0, str, &allocator);
+  // rstr_cp(str2, 0, 0, str, &allocator);
   rstr_assign(str2, "Hello world", &allocator);
   rstr_append_str(str2, "ello world", &allocator);
 

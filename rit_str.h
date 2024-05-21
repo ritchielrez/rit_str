@@ -49,7 +49,7 @@ struct rsv {
 
 /// @internal
 char *rstr_alloc_with_location(const char *t_file, int t_line, size_t t_size,
-                                  rstr_allocator *t_allocator);
+                               rstr_allocator *t_allocator);
 
 /// @brief Set the capacity of a string.
 #define rstr_reserve(t_rstr, t_new_capacity, t_allocator) \
@@ -57,13 +57,13 @@ char *rstr_alloc_with_location(const char *t_file, int t_line, size_t t_size,
 
 /// @internal
 void rstr_realloc(const char *t_file, int t_line, char **t_rstr,
-                     size_t t_new_capacity, rstr_allocator *t_allocator);
+                  size_t t_new_capacity, rstr_allocator *t_allocator);
 
 #define rstr_swap(t_rstr, t_rstr_other) \
-  do {                                           \
-    void *tmp = t_rstr;                       \
-    t_rstr = t_rstr_other;                 \
-    t_rstr_other = tmp;                       \
+  do {                                  \
+    void *tmp = t_rstr;                 \
+    t_rstr = t_rstr_other;              \
+    t_rstr_other = tmp;                 \
   } while (0)
 
 /// @brief Makes a non-binding request to make the capacity of a string equal to
@@ -76,9 +76,7 @@ inline const char *rstr_cstr(char *t_rstr) { return t_rstr; }
 
 /// @brief Returns a pointer to a null-terminated character array with data
 /// equivalent to those stored in the string.
-inline const char *rstr_data(char *t_rstr) {
-  return rstr_cstr(t_rstr);
-}
+inline const char *rstr_data(char *t_rstr) { return rstr_cstr(t_rstr); }
 
 inline void rstr_free(char *t_rstr, rstr_allocator *t_allocator) {
   t_allocator->free(t_allocator->m_ctx, t_rstr);
@@ -94,7 +92,7 @@ inline size_t rstr_capacity(char *t_rstr) {
 
 /// @internal
 inline bool rstr_index_bounds_check(const char *t_file, int t_line,
-                                       char *t_rstr, size_t t_index) {
+                                    char *t_rstr, size_t t_index) {
   if (t_index < rstr_size(t_rstr)) return true;
   fprintf(stderr, "Error: string index is out of bounds, file: %s, line: %d\n",
           t_file, t_line);
@@ -102,9 +100,7 @@ inline bool rstr_index_bounds_check(const char *t_file, int t_line,
 }
 
 /// @param Check if a string is empty.
-inline bool rstr_empty(char *t_rstr) {
-  return rstr_size(t_rstr) == 0;
-}
+inline bool rstr_empty(char *t_rstr) { return rstr_size(t_rstr) == 0; }
 
 /// @brief Empty out a string.
 inline void rstr_clear(char *t_rstr) {
@@ -113,19 +109,19 @@ inline void rstr_clear(char *t_rstr) {
 }
 
 /// @brief Initialize a rstr.
-#define rstr(t_rstr, t_cstr, t_allocator)                               \
-  char *t_rstr = rstr_alloc_with_location(__FILE__, __LINE__,           \
-                                                strlen(t_cstr), t_allocator); \
+#define rstr(t_rstr, t_cstr, t_allocator)                                     \
+  char *t_rstr = rstr_alloc_with_location(__FILE__, __LINE__, strlen(t_cstr), \
+                                          t_allocator);                       \
   strcpy(t_rstr, t_cstr)
 
 #define rstr_at(t_rstr, t_index)                                 \
   (rstr_index_bounds_check(__FILE__, __LINE__, t_rstr, t_index)) \
-      ? t_rstr[t_index]                                             \
+      ? t_rstr[t_index]                                          \
       : t_rstr[t_index]
 
 #define rstr_set(t_rstr, t_index, t_char)                             \
   if (rstr_index_bounds_check(__FILE__, __LINE__, t_rstr, t_index)) { \
-    t_rstr[t_index] = t_char;                                            \
+    t_rstr[t_index] = t_char;                                         \
   }
 
 /// @brief Get the pointer to the first element of an array
@@ -138,13 +134,12 @@ inline void rstr_clear(char *t_rstr) {
 /// @brief Get the last element of an array
 #define rstr_back(t_rstr) (t_rstr[rstr_size(t_rstr) - 1])
 
-#define rstr_push_back(t_rstr, t_char, t_allocator)           \
-  t_rstr[rstr_size(t_rstr)] = t_char;                      \
-  if (rstr_capacity(t_rstr) <= rstr_size(t_rstr) + 1) { \
-    rstr_reserve(t_rstr, (rstr_size(t_rstr) + 1) * 2,   \
-                    t_allocator);                                   \
+#define rstr_push_back(t_rstr, t_char, t_allocator)                 \
+  t_rstr[rstr_size(t_rstr)] = t_char;                               \
+  if (rstr_capacity(t_rstr) <= rstr_size(t_rstr) + 1) {             \
+    rstr_reserve(t_rstr, (rstr_size(t_rstr) + 1) * 2, t_allocator); \
   }                                                                 \
-  rstr_get_metadata(t_rstr)->m_size++;                        \
+  rstr_get_metadata(t_rstr)->m_size++;                              \
   t_rstr[rstr_size(t_rstr)] = '\0'
 
 #define rstr_pop_back(t_rstr)          \
@@ -152,19 +147,19 @@ inline void rstr_clear(char *t_rstr) {
   t_rstr[rstr_size(t_rstr)] = '\0'
 
 #define rstr_append_char(t_rstr, t_size, t_char, t_allocator) \
-  for (size_t i = 1; i <= t_size; i++) {                            \
+  for (size_t i = 1; i <= t_size; i++) {                      \
     rstr_push_back(t_rstr, t_char, t_allocator);              \
   }
 
 #define rstr_append_str(t_rstr, t_cstr, t_allocator) \
-  for (size_t i = 0; i < strlen(t_cstr); i++) {            \
+  for (size_t i = 0; i < strlen(t_cstr); i++) {      \
     rstr_push_back(t_rstr, t_cstr[i], t_allocator);  \
   }
 
 /// @brief Remove elements from the end of the string
-#define rstr_remove(t_rstr, t_size) \
-  for (size_t i = 1; i <= t_size; i++) {  \
-    rstr_pop_back(t_rstr);          \
+#define rstr_remove(t_rstr, t_size)      \
+  for (size_t i = 1; i <= t_size; i++) { \
+    rstr_pop_back(t_rstr);               \
   }
 
 /// @brief Changes the number of characters stored
@@ -174,27 +169,27 @@ inline void rstr_clear(char *t_rstr) {
 
 /// @brief Insert characters in the array at t_index.
 #define rstr_insert(t_rstr, t_index, t_size, t_char, t_allocator)        \
-  do {                                                                         \
+  do {                                                                   \
     rstr_append_char(t_rstr, t_size, t_char, t_allocator);               \
     for (size_t i = rstr_size(t_rstr) - 1; i >= t_index + t_size; i--) { \
-      rstr_set(t_rstr, i, rstr_at(t_rstr, i - t_size));            \
+      rstr_set(t_rstr, i, rstr_at(t_rstr, i - t_size));                  \
       rstr_set(t_rstr, i - t_size, t_char);                              \
-    }                                                                          \
+    }                                                                    \
   } while (0)
 
 /// @brief Remove characters in the array at t_index.
 #define rstr_erase(t_rstr, t_index, t_size)                         \
-  do {                                                                    \
+  do {                                                              \
     for (size_t i = t_index + t_size; i < rstr_size(t_rstr); i++) { \
-      rstr_set(t_rstr, i - t_size, rstr_at(t_rstr, i));       \
-    }                                                                     \
+      rstr_set(t_rstr, i - t_size, rstr_at(t_rstr, i));             \
+    }                                                               \
     rstr_remove(t_rstr, t_size);                                    \
   } while (0)
 
 /// @param t_rstr Where to assign
 /// @param t_cstr What to assign
 inline void rstr_assign(char *t_rstr, char *t_cstr,
-                           rstr_allocator *t_allocator) {
+                        rstr_allocator *t_allocator) {
   rstr_clear(t_rstr);
   for (size_t i = 0; i < strlen(t_cstr); i++) {
     rstr_push_back(t_rstr, t_cstr[i], t_allocator);
@@ -203,47 +198,46 @@ inline void rstr_assign(char *t_rstr, char *t_cstr,
 
 /// @param t_rstr Where to copy
 /// @param t_rstr_other What to copy
-#define rstr_copy(t_rstr, t_index, t_size, t_rstr_other, t_allocator) \
-  rstr_copy_with_location(__FILE__, __LINE__, t_rstr, t_index, t_size,   \
-                             t_rstr_other, t_allocator)
+/// @param t_size The size of substring of t_rstr_other
+/// If this is set to 0 by the user, then t_size will be set to
+/// rstr_size(t_rstr_other) - t_index inside the function.
+#define rstr_cp(t_rstr, t_index, t_size, t_rstr_other, t_allocator)  \
+  rstr_cp_with_location(__FILE__, __LINE__, t_rstr, t_index, t_size, \
+                        t_rstr_other, t_allocator)
 
 ///@internal
-void rstr_copy_with_location(const char *t_file, int t_line, char *t_rstr,
-                                size_t t_index, size_t t_size,
-                                char *t_rstr_other,
-                                rstr_allocator *t_allocator);
+void rstr_cp_with_location(const char *t_file, int t_line, char *t_rstr,
+                           size_t t_index, size_t t_size, char *t_rstr_other,
+                           rstr_allocator *t_allocator);
 
 /// @param t_index Starting index of the substring
 /// @param t_size Number of characters in the substring
-#define rstr_replace(t_rstr, t_index, t_size, t_cstr, t_allocator) \
-  rstr_replace_with_location(__FILE__, __LINE__, t_rstr, t_index,  \
-                                t_size, t_cstr, t_allocator)
+#define rstr_replace(t_rstr, t_index, t_size, t_cstr, t_allocator)        \
+  rstr_replace_with_location(__FILE__, __LINE__, t_rstr, t_index, t_size, \
+                             t_cstr, t_allocator)
 
 /// @internal
-void rstr_replace_with_location(const char *t_file, int t_line,
-                                   char *t_rstr, size_t t_index,
-                                   size_t t_size, const char *t_cstr,
-                                   rstr_allocator *t_allocator);
+void rstr_replace_with_location(const char *t_file, int t_line, char *t_rstr,
+                                size_t t_index, size_t t_size,
+                                const char *t_cstr,
+                                rstr_allocator *t_allocator);
 
 /// @param t_str A c string or rstr
 #define rsv(t_rsv, t_str) \
   struct rsv t_rsv = {.m_size = strlen(t_str), .m_str = t_str}
 
 #define rsv_assign(t_rsv, t_str) \
-  t_rsv.m_str = t_str;                    \
+  t_rsv.m_str = t_str;           \
   t_rsv.m_size = strlen(t_str)
 
 #define rsv_size(t_rsv) t_rsv.m_size
 
 /// @brief Access the string from rsv
-const char *rsv_get(struct rsv t_rsv) {
-  return t_rsv.m_str;
-}
+const char *rsv_get(struct rsv t_rsv) { return t_rsv.m_str; }
 
 /// @internal
 inline bool rsv_index_bounds_check(const char *t_file, int t_line,
-                                            struct rsv t_rsv,
-                                            size_t t_index) {
+                                   struct rsv t_rsv, size_t t_index) {
   if (t_index < rsv_size((t_rsv))) return true;
   fprintf(stderr,
           "Error: string_view index is out of bounds, file: %s, line: %d\n",
@@ -251,23 +245,20 @@ inline bool rsv_index_bounds_check(const char *t_file, int t_line,
   exit(EXIT_FAILURE);
 }
 
-#define rsv_at(t_rsv, t_index)                       \
-  (rsv_index_bounds_check(__FILE__, __LINE__, t_rsv, \
-                                   t_index))                           \
-      ? t_rsv.m_str[t_index]                                  \
+#define rsv_at(t_rsv, t_index)                                 \
+  (rsv_index_bounds_check(__FILE__, __LINE__, t_rsv, t_index)) \
+      ? t_rsv.m_str[t_index]                                   \
       : t_rsv.m_str[t_index]
 
 /// @brief Get the pointer to the first element of a rsv
 #define rsv_begin(t_rsv) (&(t_rsv.m_str[0]))
 /// @brief Get the pointer to the past-the-end element of an rsv
-#define rsv_end(t_rsv) \
-  (&(t_rsv.m_str[rsv_size(t_rsv)]))
+#define rsv_end(t_rsv) (&(t_rsv.m_str[rsv_size(t_rsv)]))
 
 /// @brief Get the first element of an rsv
 #define rsv_front(t_rsv) (t_rsv.m_str[0])
 /// @brief Get the last element of an rsv
-#define rsv_back(t_rsv) \
-  (t_rsv.m_str[rsv_size(t_rsv) - 1])
+#define rsv_back(t_rsv) (t_rsv.m_str[rsv_size(t_rsv) - 1])
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////IMPLEMENTATION//////////////////////////////////
@@ -276,7 +267,7 @@ inline bool rsv_index_bounds_check(const char *t_file, int t_line,
 #ifdef RIT_STR_IMPLEMENTATION
 
 char *rstr_alloc_with_location(const char *t_file, int t_line, size_t t_size,
-                                  rstr_allocator *t_allocator) {
+                               rstr_allocator *t_allocator) {
   size_t capacity = DEFAULT_STR_CAP < t_size * 2 ? t_size * 2 : DEFAULT_STR_CAP;
   rstr_metadata *arr = (rstr_metadata *)t_allocator->alloc(
       t_allocator->m_ctx, sizeof(rstr_metadata) + capacity);
@@ -292,7 +283,7 @@ char *rstr_alloc_with_location(const char *t_file, int t_line, size_t t_size,
 }
 
 void rstr_realloc(const char *t_file, int t_line, char **t_rstr,
-                     size_t t_new_capacity, rstr_allocator *t_allocator) {
+                  size_t t_new_capacity, rstr_allocator *t_allocator) {
   if (t_new_capacity > rstr_capacity(*t_rstr)) {
     rstr_metadata *arr = (rstr_metadata *)t_allocator->realloc(
         t_allocator->m_ctx, rstr_get_metadata(*t_rstr),
@@ -309,10 +300,9 @@ void rstr_realloc(const char *t_file, int t_line, char **t_rstr,
   }
 }
 
-void rstr_copy_with_location(const char *t_file, int t_line, char *t_rstr,
-                                size_t t_index, size_t t_size,
-                                char *t_rstr_other,
-                                rstr_allocator *t_allocator) {
+void rstr_cp_with_location(const char *t_file, int t_line, char *t_rstr,
+                           size_t t_index, size_t t_size, char *t_rstr_other,
+                           rstr_allocator *t_allocator) {
   if (t_index > rstr_size(t_rstr_other)) {
     fprintf(stderr,
             "Error: starting index of substring out of bounds of the string, "
@@ -340,10 +330,10 @@ void rstr_copy_with_location(const char *t_file, int t_line, char *t_rstr,
   }
 }
 
-void rstr_replace_with_location(const char *t_file, int t_line,
-                                   char *t_rstr, size_t t_index,
-                                   size_t t_size, const char *t_cstr,
-                                   rstr_allocator *t_allocator) {
+void rstr_replace_with_location(const char *t_file, int t_line, char *t_rstr,
+                                size_t t_index, size_t t_size,
+                                const char *t_cstr,
+                                rstr_allocator *t_allocator) {
   if (t_index > rstr_size(t_rstr)) {
     fprintf(stderr,
             "Error: starting index of substring out of bounds of the string, "
