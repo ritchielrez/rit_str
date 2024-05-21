@@ -103,5 +103,6 @@ For some example usage code, check out [this](./examples/).
 ### Known issues
 ##### Not everything is yet implemented, such as:
 - probably a better way to convert a `rit_str` to `rit_str_view`
+- file i/o related functions
 
 Feel free to open a new GitHub issue or pull request to suggest any changes!!
