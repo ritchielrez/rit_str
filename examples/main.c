@@ -27,37 +27,37 @@ void *libc_realloc(void *t_ctx, void *t_old_ptr, size_t t_old_size_in_bytes,
   return realloc(t_old_ptr, t_new_size_in_bytes);
 }
 
-rit_str_allocator allocator = {libc_malloc, libc_free, libc_realloc, nullptr};
+rstr_allocator allocator = {libc_malloc, libc_free, libc_realloc, nullptr};
 
 int main() {
-  rit_str(str, "hello world", &allocator);
+  rstr(str, "hello world", &allocator);
 
-  char *str2 = rit_str_alloc(strlen("Hello world"), &allocator);
+  char *str2 = rstr_alloc(strlen("Hello world"), &allocator);
   // If the size of substring is set to 0, then size is actually set to
   // strlen("Hello World") - index, in this case.
-  // rit_str_copy(str2, 0, 0, str, &allocator);
-  rit_str_assign(str2, "Hello world", &allocator);
-  rit_str_append_str(str2, "ello world", &allocator);
+  // rstr_copy(str2, 0, 0, str, &allocator);
+  rstr_assign(str2, "Hello world", &allocator);
+  rstr_append_str(str2, "ello world", &allocator);
 
-  rit_str_push_back(str, '1', &allocator);
-  rit_str_pop_back(str);
-  rit_str_insert(str, 0, 1, 't', &allocator);
-  rit_str_erase(str, 0, 1);
-  rit_str_replace(str, 0, 5, "hell", &allocator);
-  printf("size: %zu, cap: %zu, str: ", rit_str_size(str),
-         rit_str_capacity(str));
-  for (char *it = rit_str_begin(str); it < rit_str_end(str); it++) {
+  rstr_push_back(str, '1', &allocator);
+  rstr_pop_back(str);
+  rstr_insert(str, 0, 1, 't', &allocator);
+  rstr_erase(str, 0, 1);
+  rstr_replace(str, 0, 5, "hell", &allocator);
+  printf("size: %zu, cap: %zu, str: ", rstr_size(str),
+         rstr_capacity(str));
+  for (char *it = rstr_begin(str); it < rstr_end(str); it++) {
     putchar(*it);
   }
   printf("\n");
-  rit_str_clear(str);
-  printf("rit_str_empty(str) = %s\n", rit_str_empty(str) ? "true" : "false");
+  rstr_clear(str);
+  printf("rstr_empty(str) = %s\n", rstr_empty(str) ? "true" : "false");
 
-  rit_str_resize(str2, 12, 'h', &allocator);
-  printf("size: %zu, cap: %zu, str: %s\n", rit_str_size(str2),
-         rit_str_capacity(str2), str2);
+  rstr_resize(str2, 12, 'h', &allocator);
+  printf("size: %zu, cap: %zu, str: %s\n", rstr_size(str2),
+         rstr_capacity(str2), str2);
 
-  const char *cstr = rit_str_data(str);  // same as rit_str_cstr(str)
+  const char *cstr = rstr_data(str);  // same as rstr_cstr(str)
   (void)cstr;
   // May cause program to crash, you are not suppose to free this pointer.
   // free(cstr);

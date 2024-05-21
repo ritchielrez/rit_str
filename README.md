@@ -50,7 +50,7 @@ typedef struct {
   void *(*realloc)(void *, void *, size_t, size_t);
   void *m_ctx;  // The arena, stack or etc where the memory would be allocated,
                 // NULL if none
-} rit_str_allocator;
+} rstr_allocator;
 ```
 
 **Example usage**:
@@ -79,10 +79,10 @@ void *libc_realloc(void *t_ctx, void *t_old_ptr, size_t t_old_size_in_bytes,
 }
 
 int main() {
-  rit_str_allocator ctx_allocator = {libc_malloc,
+  rstr_allocator ctx_allocator = {libc_malloc,
                                     libc_free,
                                     libc_realloc, NULL};
-  rit_str *str = rit_str_create("Test", &allocator);
+  rstr *str = rit_str_create("Test", &allocator);
 }
 ```
 Only thing here to explain is maybe what is `t_ctx` doing here. `t_ctx` points
