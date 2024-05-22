@@ -1,6 +1,7 @@
 # rit_str - A custom string type written in C
 
 ## A working implementation of C++ like string and string view in C!
+### WARNING: For the latest updates, check out this [repo](https://github.com/ritchielrez/libraries).
 
 This is an example project trying to implement C++ like **heap allocated strings**
 and **non owning string refereces(string views)** in C.
