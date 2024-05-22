@@ -35,14 +35,69 @@ typedef struct {
 } rstr_metadata;
 
 /// @brief Non owning reference to a string
-struct rsv {
+typedef struct {
   size_t m_size;
   char *m_str;
-};
+} rsv;
 
 /// @brief Get the pointer to the metadata header struct of a string.
 /// @param t_rstr The string
 #define rstr_get_metadata(t_rstr) (&((rstr_metadata *)t_rstr)[-1])
+
+inline size_t rstr_size(char *t_rstr) {
+  return rstr_get_metadata(t_rstr)->m_size;
+}
+
+inline size_t rstr_capacity(char *t_rstr) {
+  return rstr_get_metadata(t_rstr)->m_capacity;
+}
+
+#define rsv_size(t_rsv) t_rsv.m_size
+
+/// @brief Create a rsv from c string
+rsv rsv_lit(char *t_cstr) {
+  return (rsv){.m_size = strlen(t_cstr), .m_str = t_cstr};
+}
+/// @brief Create a rsv from rstr
+rsv rsv_rstr(char *t_rstr) {
+  return (rsv){.m_size = rstr_size(t_rstr), .m_str = t_rstr};
+}
+/// @brief Create a rsv from rsv
+rsv rsv_rsv(rsv t_rsv) {
+  return (rsv){.m_size = rsv_size(t_rsv), .m_str = t_rsv.m_str};
+}
+
+#define rsv_assign(t_rsv, t_rsv_other) \
+  t_rsv.m_str = t_rstr_other.m_str;    \
+  t_rsv.m_size = rsv_size(t_rstr_other)
+
+/// @brief Access the string from rsv
+const char *rsv_get(rsv t_rsv) { return t_rsv.m_str; }
+
+/// @internal
+inline bool rsv_index_bounds_check(const char *t_file, int t_line, rsv t_rsv,
+                                   size_t t_index) {
+  if (t_index < rsv_size((t_rsv))) return true;
+  fprintf(stderr,
+          "Error: string_view index is out of bounds, file: %s, line: %d\n",
+          t_file, t_line);
+  exit(EXIT_FAILURE);
+}
+
+#define rsv_at(t_rsv, t_index)                                 \
+  (rsv_index_bounds_check(__FILE__, __LINE__, t_rsv, t_index)) \
+      ? t_rsv.m_str[t_index]                                   \
+      : t_rsv.m_str[t_index]
+
+/// @brief Get the pointer to the first element of a rsv
+#define rsv_begin(t_rsv) (&(t_rsv.m_str[0]))
+/// @brief Get the pointer to the past-the-end element of an rsv
+#define rsv_end(t_rsv) (&(t_rsv.m_str[rsv_size(t_rsv)]))
+
+/// @brief Get the first element of an rsv
+#define rsv_front(t_rsv) (t_rsv.m_str[0])
+/// @brief Get the last element of an rsv
+#define rsv_back(t_rsv) (t_rsv.m_str[rsv_size(t_rsv) - 1])
 
 #define rstr_alloc(t_size, t_allocator) \
   rstr_alloc_with_location(__FILE__, __LINE__, t_size, t_allocator)
