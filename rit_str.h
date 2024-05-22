@@ -137,14 +137,6 @@ inline void rstr_free(char *t_rstr, rstr_allocator *t_allocator) {
   t_allocator->free(t_allocator->m_ctx, t_rstr);
 }
 
-inline size_t rstr_size(char *t_rstr) {
-  return rstr_get_metadata(t_rstr)->m_size;
-}
-
-inline size_t rstr_capacity(char *t_rstr) {
-  return rstr_get_metadata(t_rstr)->m_capacity;
-}
-
 /// @internal
 inline bool rstr_index_bounds_check(const char *t_file, int t_line,
                                     char *t_rstr, size_t t_index) {
@@ -163,11 +155,12 @@ inline void rstr_clear(char *t_rstr) {
   t_rstr[0] = '\0';
 }
 
-/// @brief Initialize a rstr.
-#define rstr(t_rstr, t_cstr, t_allocator)                                     \
-  char *t_rstr = rstr_alloc_with_location(__FILE__, __LINE__, strlen(t_cstr), \
-                                          t_allocator);                       \
-  strcpy(t_rstr, t_cstr)
+/// @brief Create a rstr.
+#define rstr(t_rstr, t_rsv, t_allocator)                                       \
+  char *t_rstr = rstr_alloc_with_location(__FILE__, __LINE__, rsv_size(t_rsv), \
+                                          t_allocator);                        \
+  strcpy(t_rstr, t_rsv.m_str)
+
 
 #define rstr_at(t_rstr, t_index)                                 \
   (rstr_index_bounds_check(__FILE__, __LINE__, t_rstr, t_index)) \
