@@ -161,6 +161,17 @@ inline void rstr_clear(char *t_rstr) {
                                           t_allocator);                        \
   strcpy(t_rstr, t_rsv.m_str)
 
+/// @param t_rstr Where to copy
+/// @param t_rstr_other What to copy
+/// @param t_size The size of substring of t_rstr_other
+#define rstr_cp(t_rstr, t_index, t_size, t_rstr_other, t_allocator)      \
+  char *t_rstr = rstr_cp_with_location(__FILE__, __LINE__, t_rstr_other, \
+                                       t_index, t_size, t_allocator)
+
+///@internal
+char *rstr_cp_with_location(const char *t_file, int t_line, char *t_rstr,
+                            size_t t_index, size_t t_size,
+                            rstr_allocator *t_allocator);
 
 #define rstr_at(t_rstr, t_index)                                 \
   (rstr_index_bounds_check(__FILE__, __LINE__, t_rstr, t_index)) \
@@ -199,9 +210,9 @@ inline void rstr_clear(char *t_rstr) {
     rstr_push_back(t_rstr, t_char, t_allocator);              \
   }
 
-#define rstr_append_str(t_rstr, t_cstr, t_allocator) \
-  for (size_t i = 0; i < strlen(t_cstr); i++) {      \
-    rstr_push_back(t_rstr, t_cstr[i], t_allocator);  \
+#define rstr_append_str(t_rstr, t_rsv, t_allocator)     \
+  for (size_t i = 0; i < rsv_size(t_rsv); i++) {        \
+    rstr_push_back(t_rstr, rsv_at(t_rsv, i), t_allocator); \
   }
 
 /// @brief Remove elements from the end of the string
@@ -293,34 +304,27 @@ void rstr_realloc(const char *t_file, int t_line, char **t_rstr,
   }
 }
 
-void rstr_cp_with_location(const char *t_file, int t_line, char *t_rstr,
-                           size_t t_index, size_t t_size, char *t_rstr_other,
+char* rstr_cp_with_location(const char *t_file, int t_line, char *t_rstr,
+                           size_t t_index, size_t t_size,
                            rstr_allocator *t_allocator) {
-  if (t_index > rstr_size(t_rstr_other)) {
+  if (t_index > rstr_size(t_rstr)) {
     fprintf(stderr,
             "Error: starting index of substring out of bounds of the string, "
             "file: %s, line: %d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
-  } else if (t_size == 0) {
-    t_size = rstr_size(t_rstr_other) - t_index;
-  } else if (t_index + t_size > rstr_size(t_rstr_other)) {
+  } else if (t_index + t_size > rstr_size(t_rstr)) {
     fprintf(stderr,
             "Error: size of substring greater than the string, file: %s, line: "
             "%d\n",
             t_file, t_line);
     exit(EXIT_FAILURE);
   }
-  if (rstr_size(t_rstr) < t_size) {
-    size_t size = t_size - rstr_size(t_rstr);
-    rstr_append_char(t_rstr, size, ' ', t_allocator);
-  } else if (rstr_size(t_rstr) > t_size) {
-    size_t size = rstr_size(t_rstr) - t_size;
-    rstr_remove(t_rstr, size);
-  }
+  char *ret_rstr = rstr_alloc_with_location(t_file, t_line, t_size - t_index, t_allocator);
   for (size_t i = 0, j = t_index; i < t_size; i++, j++) {
-    rstr_set(t_rstr, i, rstr_at(t_rstr_other, j));
+    rstr_set(ret_rstr, i, rstr_at(t_rstr, j));
   }
+  return ret_rstr;
 }
 
 void rstr_replace_with_location(const char *t_file, int t_line, char *t_rstr,

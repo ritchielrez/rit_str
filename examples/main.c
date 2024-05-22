@@ -30,14 +30,11 @@ void *libc_realloc(void *t_ctx, void *t_old_ptr, size_t t_old_size_in_bytes,
 rstr_allocator allocator = {libc_malloc, libc_free, libc_realloc, nullptr};
 
 int main() {
-  rstr(str, "hello world", &allocator);
+  rstr(str, rsv_lit("hello world"), &allocator);
 
-  char *str2 = rstr_alloc(strlen("Hello world"), &allocator);
-  // If the size of substring is set to 0, then size is actually set to
-  // strlen("Hello World") - index, in this case.
-  // rstr_cp(str2, 0, 0, str, &allocator);
-  rstr_assign(str2, "Hello world", &allocator);
-  rstr_append_str(str2, "ello world", &allocator);
+  rstr_cp(str2, 0, rstr_size(str), str, &allocator);
+  rstr_assign(str2, rsv_lit("Hello world"), &allocator);
+  rstr_append_str(str2, rsv_lit("ello world"), &allocator);
 
   rstr_push_back(str, '1', &allocator);
   rstr_pop_back(str);
